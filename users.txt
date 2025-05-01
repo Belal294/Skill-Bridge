@@ -1,0 +1,11 @@
+admin 
+email: belal@gmail.com
+pass: 123
+
+seller
+email: sayarag948@buides.com
+pass: buyer4048@
+
+buyer
+email: vefepen873@buides.com
+pass: buyer4048@
