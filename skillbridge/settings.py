@@ -19,7 +19,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security
 SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
-DEBUG = True
+DEBUG = False
 
 FRONTEND_URL = "http://localhost:5173"
 
