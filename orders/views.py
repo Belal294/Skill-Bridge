@@ -6,12 +6,13 @@ from django.shortcuts import redirect
 from django.conf import settings
 from .models import Order
 from .serializers import OrderSerializer, CheckoutSessionSerializer
-import stripe
 from services.models import Service
 from drf_yasg.utils import swagger_auto_schema
+import stripe
 
 # Stripe configuration
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -32,7 +33,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         methods=['PATCH'],
         operation_summary="Update order status (for sellers only)",
         operation_description="Allows sellers to update the status of their own services' orders.",
-        request_body=OrderSerializer  # Specify the request body serializer here
+        request_body=OrderSerializer
     )
     @action(detail=True, methods=['patch'], permission_classes=[IsAuthenticated])
     def update_status(self, request, pk=None):
@@ -57,14 +58,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response({"message": "Order status updated successfully."}, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
 @swagger_auto_schema(
+    method='post',
     operation_summary="Create Stripe Checkout Session",
-    request_body=CheckoutSessionSerializer,  # Specify the request body serializer here
+    request_body=CheckoutSessionSerializer
 )
+@api_view(["POST"])
 def create_checkout_session(request):
     order_id = request.data.get("order_id")
-    service_id = request.data.get("product_id")  # Alternatively rename to 'service_id' if you want
+    service_id = request.data.get("product_id")  # Alternatively rename to 'service_id'
 
     try:
         service = Service.objects.get(id=service_id)
@@ -76,23 +78,26 @@ def create_checkout_session(request):
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=404)
 
-    session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[{
-            "price_data": {
-                "currency": "usd",
-                "product_data": {
-                    "name": service.title,
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": service.title,
+                    },
+                    "unit_amount": int(service.price),
                 },
-                "unit_amount": int(service.price),
-            },
-            "quantity": 1,
-        }],
-        mode="payment",
-        success_url=f"{settings.FRONTEND_URL}/payment/success/?order_uuid={order.uuid}",
-        cancel_url=f"{settings.FRONTEND_URL}/payment/cancel/",
-        metadata={"order_id": str(order.id)},
-    )
+                "quantity": 1,
+            }],
+            mode="payment",
+            success_url=f"{settings.FRONTEND_URL}/payment/success/?order_uuid={order.uuid}",
+            cancel_url=f"{settings.FRONTEND_URL}/payment/cancel/",
+            metadata={"order_id": str(order.id)},
+        )
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
     return Response({"checkout_url": session.url})
 
@@ -103,17 +108,30 @@ def payment_success(request):
 
     try:
         order = Order.objects.get(uuid=order_uuid)
-        order.status = "in_progress"  # Or set to 'completed' if needed
+        order.status = "in_progress"  # You can change this to 'completed' if needed
         order.save()
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
 
     return redirect(f"{settings.FRONTEND_URL}/dashboard/orders/")
 
+
 @api_view(['POST'])
 def payment_cancel(request):
     return redirect(f"{settings.FRONTEND_URL}/payment/cancel")
 
+
 @api_view(['POST'])
 def payment_fail(request):
     return redirect(f"{settings.FRONTEND_URL}/payment/failed")
+
+
+@api_view(['GET'])
+def get_order_by_uuid(request, uuid):
+    try:
+        order = Order.objects.get(uuid=uuid)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = OrderSerializer(order)
+    return Response(serializer.data)

@@ -1,13 +1,15 @@
 from rest_framework import serializers
 from .models import Order
 from services.models import Service
+from services.serializers import ServiceSerializer
 
 class OrderSerializer(serializers.ModelSerializer):
-    service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all())
+    service = ServiceSerializer(read_only=True)
+    service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all(), write_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'buyer', 'service', 'status', 'created_at', 'updated_at', 'order_date']
+        fields = ['id', 'buyer', 'service', 'service_id', 'status', 'created_at', 'updated_at', 'order_date']
         read_only_fields = ['id', 'buyer', 'created_at', 'updated_at']
 
     def create(self, validated_data):

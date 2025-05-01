@@ -9,7 +9,7 @@ from users.views import (
 )
 from services.views import ServiceViewSet, CategoryViewSet, ServiceImageViewSet
 from orders.views import (
-    OrderViewSet, payment_cancel, payment_fail, payment_success, create_checkout_session, 
+    OrderViewSet, payment_cancel, payment_fail, payment_success, create_checkout_session, get_order_by_uuid
 )
 from notifications.views import NotificationViewSet
 from dashboard.views import AdminDashboardView
@@ -57,6 +57,8 @@ urlpatterns = [
     path('payment/cancel/', payment_cancel, name="payment-cancel"),
     path('payment/fail/', payment_fail, name="payment-fail"),
     path('create-checkout-session/', create_checkout_session, name='create-checkout'),
+    path('orders/by-uuid/<uuid:uuid>/', get_order_by_uuid),
+
 
 
 ]
