@@ -5,24 +5,31 @@ from services.serializers import ServiceSerializer
 
 class OrderSerializer(serializers.ModelSerializer):
     service = ServiceSerializer(read_only=True)
-    service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all(), write_only=True)
+    service_id = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all(), source='service', write_only=True
+    )
+
+
+    is_paid = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'buyer', 'service', 'service_id', 'status', 'created_at', 'updated_at', 'order_date']
+        fields = [
+            'id',
+            'buyer',
+            'service',
+            'service_id',
+            'status',
+            'is_paid',        
+            'created_at',
+            'updated_at',
+            'order_date'
+        ]
         read_only_fields = ['id', 'buyer', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         validated_data['buyer'] = self.context['request'].user
         return super().create(validated_data)
-
-    # Optional: prevent duplicate orders by the same user for the same service
-    # def validate(self, attrs):
-    #     buyer = self.context['request'].user
-    #     service = attrs.get('service')
-    #     if Order.objects.filter(buyer=buyer, service=service).exists():
-    #         raise serializers.ValidationError("You have already ordered this service.")
-    #     return attrs
 
 
 class CheckoutSessionSerializer(serializers.Serializer):

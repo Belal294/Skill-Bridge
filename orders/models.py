@@ -6,10 +6,8 @@ import uuid
 User = get_user_model()
 
 class Order(models.Model):
-    # Unique identifier for frontend/payment tracking
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
 
-    # Order status choices
     PENDING = 'pending'
     IN_PROGRESS = 'in_progress'
     COMPLETED = 'completed'
@@ -22,26 +20,12 @@ class Order(models.Model):
         (CANCELED, 'Canceled'),
     ]
 
-    # Foreign keys
-    buyer = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='orders'
-    )
-    service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        related_name='orders'
-    )
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='orders')
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default=PENDING)
 
-    # Status field
-    status = models.CharField(
-        max_length=20,
-        choices=ORDER_STATUS_CHOICES,
-        default=PENDING
-    )
+    is_paid = models.BooleanField(default=False)
 
-    # Timestamps
     order_date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

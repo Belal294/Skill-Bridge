@@ -66,7 +66,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 @api_view(["POST"])
 def create_checkout_session(request):
     order_id = request.data.get("order_id")
-    service_id = request.data.get("product_id")  # Alternatively rename to 'service_id'
+    service_id = request.data.get("product_id") 
 
     try:
         service = Service.objects.get(id=service_id)
@@ -108,13 +108,13 @@ def payment_success(request):
 
     try:
         order = Order.objects.get(uuid=order_uuid)
-        order.status = "in_progress"  # You can change this to 'completed' if needed
+        order.status = "in_progress" 
+        order.is_paid = True         
         order.save()
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
 
     return redirect(f"{settings.FRONTEND_URL}/dashboard/orders/")
-
 
 @api_view(['POST'])
 def payment_cancel(request):
