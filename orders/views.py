@@ -2,7 +2,6 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
-from django.shortcuts import redirect
 from django.conf import settings
 from .models import Order
 from .serializers import OrderSerializer, CheckoutSessionSerializer
@@ -58,23 +57,31 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response({"message": "Order status updated successfully."}, status=status.HTTP_200_OK)
 
 
+
+
+
 @swagger_auto_schema(
     method='post',
     operation_summary="Create Stripe Checkout Session",
     request_body=CheckoutSessionSerializer
 )
-@api_view(["POST"])
-def create_checkout_session(request):
-    order_id = request.data.get("order_id")
-    service_id = request.data.get("product_id") 
 
-    try:
-        service = Service.objects.get(id=service_id)
-    except Service.DoesNotExist:
+@api_view(['POST'])
+def create_checkout_session(request):
+    order_uuid = request.data.get("order_uuid")
+    service_id = request.data.get("service_id")
+    
+    print('order_uuid:', order_uuid)
+
+    print('service_id:', service_id)
+
+    try: 
+        service = Service.objects.get(id=int(service_id))
+    except (Service.DoesNotExist, ValueError, TypeError):
         return Response({"error": "Service not found."}, status=404)
 
     try:
-        order = Order.objects.get(id=order_id)
+        order = Order.objects.get(id=int(order_uuid))
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=404)
 
@@ -87,14 +94,14 @@ def create_checkout_session(request):
                     "product_data": {
                         "name": service.title,
                     },
-                    "unit_amount": int(service.price),
+                    "unit_amount": int(service.price * 100),
                 },
                 "quantity": 1,
             }],
             mode="payment",
-            success_url=f"{settings.FRONTEND_URL}/payment/success/?order_uuid={order.uuid}",
-            cancel_url=f"{settings.FRONTEND_URL}/payment/cancel/",
-            metadata={"order_id": str(order.id)},
+            success_url=f"{settings.FRONTEND_URL}/payment/status/?order_uuid={order.uuid}&alert=success",
+            cancel_url=f"{settings.FRONTEND_URL}/payment/status/?order_uuid={order.uuid}&alert=cancel",
+            metadata={"order_uuid": str(order.uuid)},
         )
     except Exception as e:
         return Response({"error": str(e)}, status=500)
@@ -102,28 +109,29 @@ def create_checkout_session(request):
     return Response({"checkout_url": session.url})
 
 
+
 @api_view(['POST'])
 def payment_success(request):
-    order_uuid = request.query_params.get('order_uuid')
+    order_uuid = request.data.get('order_uuid')
+
+    if not order_uuid:
+        return Response({'error': 'Order UUID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         order = Order.objects.get(uuid=order_uuid)
-        order.status = "in_progress" 
-        order.is_paid = True         
+        order.status = "in_progress"
+        order.is_paid = True
         order.save()
+        return Response({'message': 'Payment marked as successful'}, status=status.HTTP_200_OK)
     except Order.DoesNotExist:
-        return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        # Log the error for debugging purposes
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error updating order {order_uuid}: {e}")
+        return Response({'error': 'Failed to update order status due to a server error.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    return redirect(f"{settings.FRONTEND_URL}/dashboard/orders/")
-
-@api_view(['POST'])
-def payment_cancel(request):
-    return redirect(f"{settings.FRONTEND_URL}/payment/cancel")
-
-
-@api_view(['POST'])
-def payment_fail(request):
-    return redirect(f"{settings.FRONTEND_URL}/payment/failed")
 
 
 @api_view(['GET'])

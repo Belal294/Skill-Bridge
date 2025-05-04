@@ -8,8 +8,6 @@ class OrderSerializer(serializers.ModelSerializer):
     service_id = serializers.PrimaryKeyRelatedField(
         queryset=Service.objects.all(), source='service', write_only=True
     )
-
-
     is_paid = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -34,4 +32,4 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class CheckoutSessionSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
-    product_id = serializers.IntegerField()  # Rename to 'service_id' if needed
+    service_id = serializers.IntegerField()

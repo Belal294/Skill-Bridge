@@ -9,7 +9,7 @@ from users.views import (
 )
 from services.views import ServiceViewSet, CategoryViewSet, ServiceImageViewSet
 from orders.views import (
-    OrderViewSet, payment_cancel, payment_fail, payment_success, create_checkout_session, get_order_by_uuid
+    OrderViewSet, payment_success, create_checkout_session, get_order_by_uuid
 )
 from notifications.views import NotificationViewSet
 from dashboard.views import AdminDashboardView
@@ -20,7 +20,7 @@ router = DefaultRouter()
 router.register('users', UserViewSet, basename='users')
 router.register('services', ServiceViewSet, basename='services')
 router.register('categories', CategoryViewSet, basename='category')
-router.register('orders', OrderViewSet, basename='order')
+router.register('orders', OrderViewSet, basename='orders')
 router.register('notifications', NotificationViewSet, basename='notification')
 router.register('reviews', ReviewViewSet, basename='review')
 
@@ -52,12 +52,9 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
 
     # Payment URLs
-    # path('payment/initiate/', initiate_payment, name="payment-initiate"),
-    path('payment/success/', payment_success, name="payment-success"),
-    path('payment/cancel/', payment_cancel, name="payment-cancel"),
-    path('payment/fail/', payment_fail, name="payment-fail"),
     path('create-checkout-session/', create_checkout_session, name='create-checkout'),
-    path('orders/by-uuid/<uuid:uuid>/', get_order_by_uuid),
+    path('payment-success/', payment_success, name='payment-success'),
+    path('orders/by-uuid/<uuid:uuid>/', get_order_by_uuid, name='get-order-by-uuid'),
 
 
 
