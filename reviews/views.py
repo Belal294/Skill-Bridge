@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
-
+from services.serializers import ServiceSerializer
 from .models import Review
 from .serializers import ReviewSerializer
 from orders.models import Order
@@ -51,14 +51,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def reviewed(self, request):
         user = request.user
         reviewed_services = Service.objects.filter(reviews__buyer=user).distinct()
-        service_data = [
-            {
-                "id": service.id,
-                "title": service.title,
-            }
-            for service in reviewed_services
-        ]
-        return Response(service_data)
+        serializer = ServiceSerializer(reviewed_services, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='my_review', permission_classes=[IsAuthenticated])
     def my_review(self, request, *args, **kwargs):
