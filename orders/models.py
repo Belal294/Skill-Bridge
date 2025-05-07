@@ -1,21 +1,16 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from services.models import Service
-import uuid
 
 User = get_user_model()
 
 class Order(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
-
     PENDING = 'pending'
-    IN_PROGRESS = 'in_progress'
     COMPLETED = 'completed'
     CANCELED = 'canceled'
 
     ORDER_STATUS_CHOICES = [
         (PENDING, 'Pending'),
-        (IN_PROGRESS, 'In Progress'),
         (COMPLETED, 'Completed'),
         (CANCELED, 'Canceled'),
     ]
@@ -31,7 +26,7 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order {self.uuid} | {self.buyer.username} → {self.service.title} [{self.status}]"
+        return f"Order #{self.id} | {self.buyer.username} → {self.service.title} [{self.status}]"
 
     class Meta:
         ordering = ['-order_date']

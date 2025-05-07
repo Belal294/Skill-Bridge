@@ -9,11 +9,13 @@ from users.views import (
 )
 from services.views import ServiceViewSet, CategoryViewSet, ServiceImageViewSet
 from orders.views import (
-    OrderViewSet, payment_success, create_checkout_session, get_order_by_uuid
+    OrderViewSet, payment_success, create_checkout_session,
+    get_order_by_id, HasOrderedProduct
 )
 from notifications.views import NotificationViewSet
 from dashboard.views import AdminDashboardView
 from reviews.views import ReviewViewSet
+
 
 # 🔹 Default Router
 router = DefaultRouter()
@@ -22,17 +24,19 @@ router.register('services', ServiceViewSet, basename='services')
 router.register('categories', CategoryViewSet, basename='category')
 router.register('orders', OrderViewSet, basename='orders')
 router.register('notifications', NotificationViewSet, basename='notification')
-router.register('reviews', ReviewViewSet, basename='review')
 
-# 🔹 Nested Router for Service Images
+# ✅ Root-level route for general review actions (e.g., reviewed)
+router.register('reviews', ReviewViewSet, basename='all-reviews')  # Add this
+
+# 🔹 Nested Router for Service Images and Reviews
 services_router = NestedDefaultRouter(router, 'services', lookup='service')
 services_router.register('images', ServiceImageViewSet, basename='service-images')
+services_router.register('reviews', ReviewViewSet, basename='service-reviews')
 
 # 🔹 URL Patterns
 urlpatterns = [
-    # API routes from routers
-    path('', include(router.urls)),
-    path('', include(services_router.urls)),
+    path('', include(router.urls)),               # Includes all base routes
+    path('', include(services_router.urls)),      # Includes nested routes
 
     # Auth & User routes
     path('register/', RegisterView.as_view(), name='register'),
@@ -54,8 +58,6 @@ urlpatterns = [
     # Payment URLs
     path('create-checkout-session/', create_checkout_session, name='create-checkout'),
     path('payment-success/', payment_success, name='payment-success'),
-    path('orders/by-uuid/<uuid:uuid>/', get_order_by_uuid, name='get-order-by-uuid'),
-
-
-
+    path('orders/by-id/<int:order_id>/', get_order_by_id, name='get-order-by-id'),
+    path('orders/has-ordered/<int:service_id>/', HasOrderedProduct.as_view(), name='has-ordered'),
 ]

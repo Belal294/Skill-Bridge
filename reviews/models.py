@@ -5,7 +5,7 @@ from orders.models import Order
 
 class Review(models.Model):
     buyer = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='reviews')
     order = models.OneToOneField(Order, on_delete=models.CASCADE)  
     rating = models.PositiveIntegerField(default=1)  
     comment = models.TextField()

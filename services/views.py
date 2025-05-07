@@ -8,11 +8,12 @@ from rest_framework.viewsets import ModelViewSet
 from .permissions import IsAdminOrReadOnly
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from services.permissions import IsAdminOrReadOnly
 
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.select_related('category', 'seller').prefetch_related('images').all()
     serializer_class = ServiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
     filterset_fields = ['category']
     ordering_fields = ['price']

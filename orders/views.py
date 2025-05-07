@@ -8,10 +8,10 @@ from .serializers import OrderSerializer, CheckoutSessionSerializer
 from services.models import Service
 from drf_yasg.utils import swagger_auto_schema
 import stripe
+from rest_framework.views import APIView
+from notifications.models import Notification  
 
-# Stripe configuration
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -43,7 +43,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not new_status:
             return Response({"error": "Status field is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if new_status not in ['pending', 'in_progress', 'completed', 'canceled']:
+        valid_statuses = ['pending', 'completed', 'canceled']
+        if new_status not in valid_statuses:
             return Response({"error": "Invalid status value."}, status=status.HTTP_400_BAD_REQUEST)
 
         if order.service.seller != user:
@@ -54,10 +55,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         order.status = new_status
         order.save()
-        return Response({"message": "Order status updated successfully."}, status=status.HTTP_200_OK)
-
-
-
+        return Response({"message": f"Order status updated to '{new_status}' successfully."}, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(
@@ -65,23 +63,21 @@ class OrderViewSet(viewsets.ModelViewSet):
     operation_summary="Create Stripe Checkout Session",
     request_body=CheckoutSessionSerializer
 )
-
 @api_view(['POST'])
 def create_checkout_session(request):
-    order_uuid = request.data.get("order_uuid")
+    order_id = request.data.get("order_id")
     service_id = request.data.get("service_id")
-    
-    print('order_uuid:', order_uuid)
 
-    print('service_id:', service_id)
+    if not order_id or not service_id:
+        return Response({"error": "order_id and service_id are required."}, status=400)
 
-    try: 
+    try:
         service = Service.objects.get(id=int(service_id))
     except (Service.DoesNotExist, ValueError, TypeError):
         return Response({"error": "Service not found."}, status=404)
 
     try:
-        order = Order.objects.get(id=int(order_uuid))
+        order = Order.objects.get(id=int(order_id))
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=404)
 
@@ -99,9 +95,9 @@ def create_checkout_session(request):
                 "quantity": 1,
             }],
             mode="payment",
-            success_url=f"{settings.FRONTEND_URL}/payment/status/?order_uuid={order.uuid}&alert=success",
-            cancel_url=f"{settings.FRONTEND_URL}/payment/status/?order_uuid={order.uuid}&alert=cancel",
-            metadata={"order_uuid": str(order.uuid)},
+            success_url=f"{settings.FRONTEND_URL}/payment/status/?order_id={order.id}&alert=success",
+            cancel_url=f"{settings.FRONTEND_URL}/payment/status/?order_id={order.id}&alert=cancel",
+            metadata={"order_id": str(order.id)},
         )
     except Exception as e:
         return Response({"error": str(e)}, status=500)
@@ -109,37 +105,56 @@ def create_checkout_session(request):
     return Response({"checkout_url": session.url})
 
 
-
 @api_view(['POST'])
 def payment_success(request):
-    order_uuid = request.data.get('order_uuid')
+    order_id = request.data.get('order_id')
 
-    if not order_uuid:
-        return Response({'error': 'Order UUID is required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not order_id:
+        return Response({'error': 'Order ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        order = Order.objects.get(uuid=order_uuid)
-        order.status = "in_progress"
+        order = Order.objects.get(id=order_id)
+        order.status = "completed"
         order.is_paid = True
         order.save()
-        return Response({'message': 'Payment marked as successful'}, status=status.HTTP_200_OK)
+
+        Notification.objects.create(
+            user=order.service.seller,
+            order=order,
+            message=f"You received a completed order from {order.buyer.username}"
+        )
+
+        return Response({'message': 'Payment marked as successful and order completed'}, status=status.HTTP_200_OK)
+
     except Order.DoesNotExist:
         return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
     except Exception as e:
-        # Log the error for debugging purposes
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"Error updating order {order_uuid}: {e}")
+        logger.error(f"Error updating order {order_id}: {e}")
         return Response({'error': 'Failed to update order status due to a server error.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 @api_view(['GET'])
-def get_order_by_uuid(request, uuid):
+def get_order_by_id(request, order_id):
     try:
-        order = Order.objects.get(uuid=uuid)
+        order = Order.objects.get(id=order_id)
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = OrderSerializer(order)
     return Response(serializer.data)
+
+
+class HasOrderedProduct(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, service_id):
+        user = request.user
+        has_ordered = Order.objects.filter(
+            buyer=user,
+            service_id=service_id,
+            status='completed'
+        ).exists()
+        return Response({"hasOrdered": has_ordered})
