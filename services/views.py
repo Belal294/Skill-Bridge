@@ -9,6 +9,8 @@ from .permissions import IsAdminOrReadOnly
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from services.permissions import IsAdminOrReadOnly
+from rest_framework.response import Response
+from services.customPagination import CustomPagination
 
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.select_related('category', 'seller').prefetch_related('images').all()
@@ -19,6 +21,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price']
     search_fields = ['title', 'description']
     parser_classes = [MultiPartParser, FormParser]
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
