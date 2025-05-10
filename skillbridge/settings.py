@@ -2,11 +2,12 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
-import cloudinary
 from decouple import config
+import cloudinary
 
 # Load environment variables
-load_dotenv() 
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Static & Media files
@@ -19,11 +20,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security
 SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
-DEBUG = False 
+DEBUG = False
 
-FRONTEND_URL = "https://skill-bridge-client.vercel.app"
+# Frontend Config
+FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL", default="https")
+FRONTEND_DOMAIN = config("FRONTEND_DOMAIN", default="skill-bridge-client.vercel.app")
+FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 
-ALLOWED_HOSTS = [".vercel.app", '127.0.0.1']
+ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -34,13 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     'corsheaders',
-
     'rest_framework',
     'djoser',
     'rest_framework.authtoken',
     'django_filters',
-
-    'whitenoise.runserver_nostatic', 
+    'whitenoise.runserver_nostatic',
 
     'users',
     'api',
@@ -48,27 +50,8 @@ INSTALLED_APPS = [
     'orders',
     'reviews',
     'dashboard',
-    'notifications'
+    'notifications',
 ]
-
-
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',  
-        'DIRS': [],  
-        'APP_DIRS': True, 
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -84,31 +67,34 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'skillbridge.urls'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
-
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
-
+WSGI_APPLICATION = 'skillbridge.wsgi.app'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('dbname'), 
-        'USER': config('user'), 
-        'PASSWORD': config('password'),  
-        'HOST': config('host'), 
-        'PORT': config('port'),  
+        'NAME': config('dbname'),
+        'USER': config('user'),
+        'PASSWORD': config('password'),
+        'HOST': config('host'),
+        'PORT': config('port'),
     }
 }
-
-
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -127,18 +113,12 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.openapi.AutoSchema',
-    'DEFAULT_FILTER_BACKENDS': 
-        [
-            'django_filters.rest_framework.DjangoFilterBackend'
-        ],
-
-
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-    'rest_framework_simplejwt.authentication.JWTAuthentication',
-    'rest_framework.authentication.SessionAuthentication',
-    'rest_framework.authentication.TokenAuthentication',
-
-),
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
@@ -146,16 +126,15 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+}
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
-    'https://skill-bridge-client.vercel.app/',
+    'https://skill-bridge-client.vercel.app',
 ]
-
-
-SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
-   "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -164,32 +143,36 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-# Configuration       
-cloudinary.config( 
-    cloud_name = config('cloud_name'), 
-    api_key = config('api_key'), 
-    api_secret = config('api_secret_key'),
+# Cloudinary Configuration
+cloudinary.config(
+    cloud_name=config('cloud_name'),
+    api_key=config('api_key'),
+    api_secret=config('api_secret_key'),
     secure=True
 )
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# Djoser Config
 DJOSER = {
-    'EMAIL_FRONTEND_PROTOCOL': config('FRONTEND_PROTOCOL'),
-    'EMAIL_FRONTEND_DOMAIN': config('FRONTEND_DOMAIN'),
+    'EMAIL': {
+        'activation': 'djoser.email.ActivationEmail',
+    },
     'USER_CREATE_PASSWORD_RETYPE': False,
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
     'SERIALIZERS': {
         'user_create': 'users.serializers.UserCreateSerializer',
         'user': 'users.serializers.UserSerializer',
         'current_user': 'users.serializers.UserSerializer',
     },
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# For Djoser email site info
+SITE_NAME = "Skill Bridge"
+DOMAIN = FRONTEND_DOMAIN
 
-WSGI_APPLICATION = 'skillbridge.wsgi.app'
-
-
-
+# Stripe Keys
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
