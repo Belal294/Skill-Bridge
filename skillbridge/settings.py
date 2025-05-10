@@ -21,7 +21,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
 DEBUG = False 
 
-FRONTEND_URL = "http://localhost:5173"
+FRONTEND_URL = "https://skill-bridge-client.vercel.app"
 
 ALLOWED_HOSTS = [".vercel.app", '127.0.0.1']
 
