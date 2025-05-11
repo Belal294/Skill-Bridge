@@ -156,7 +156,7 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # Djoser Config
 DJOSER = {
     'EMAIL': {
-        'activation': 'djoser.email.CustomActivationEmail',
+        'activation': 'users.email.CustomActivationEmail',
     },
     'USER_CREATE_PASSWORD_RETYPE': False,
     'SEND_ACTIVATION_EMAIL': True,
