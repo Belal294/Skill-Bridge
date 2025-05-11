@@ -4,6 +4,6 @@ from django.conf import settings
 class CustomActivationEmail(ActivationEmail):
     def get_context_data(self):
         context = super().get_context_data()
-        frontend_url = settings.FRONTEND_URL 
-        context["url"] = f"{frontend_url}{context['link']}" 
+        frontend_url = settings.FRONTEND_URL  
+        context["url"] = f"{frontend_url}{context['url']}" 
         return context
