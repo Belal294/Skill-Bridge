@@ -23,8 +23,8 @@ SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
 DEBUG = False
 
 # Frontend Config
-FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL", default="https")
-FRONTEND_DOMAIN = config("FRONTEND_DOMAIN", default="skill-bridge-client.vercel.app")
+FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL")
+FRONTEND_DOMAIN = config("FRONTEND_DOMAIN")
 FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 
 ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
