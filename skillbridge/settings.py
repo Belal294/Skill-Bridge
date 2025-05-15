@@ -20,13 +20,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security
 SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
-DEBUG = False
+DEBUG = True
 
 # Frontend Config
-FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL")
-FRONTEND_DOMAIN = config("FRONTEND_DOMAIN")
-FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
+# FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL")
+# FRONTEND_DOMAIN = config("FRONTEND_DOMAIN")
+# FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 
+FRONTEND_PROTOCOL="https"
+FRONTEND_DOMAIN="skill-bridge-client.vercel.app"
+FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
 
 INSTALLED_APPS = [
@@ -168,6 +171,23 @@ DJOSER = {
         'current_user': 'users.serializers.UserSerializer',
     },
 }
+
+
+# DJOSER = {
+#     'EMAIL': {
+#         'activation': 'users.email.CustomActivationEmail',
+#     },
+#     'USER_CREATE_PASSWORD_RETYPE': False,
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'ACTIVATION_URL': "{FRONTEND_URL}/activate/{uid}/{token}",
+#     'PASSWORD_RESET_CONFIRM_URL': "{FRONTEND_URL}/password/reset/confirm/{uid}/{token}",
+#     'SERIALIZERS': {
+#         'user_create': 'users.serializers.UserCreateSerializer',
+#         'user': 'users.serializers.UserSerializer',
+#         'current_user': 'users.serializers.UserSerializer',
+#     },
+# }
+
 
 # For Djoser email site info
 SITE_NAME = "Skill Bridge"

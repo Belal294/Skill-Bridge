@@ -15,8 +15,8 @@ class CustomActivationEmail(ActivationEmail):
         
         a = frontend_url
         b = context["url"]
-        context["url"] = f"{a}/{b}"
-        # context["url"] = f"{context['url']}"
+        # context["url"] = f"{a}/{b}"
+        context["url"] = f"{context['url']}"
         
         
         print("Activation link being sent:", context["url"])  
