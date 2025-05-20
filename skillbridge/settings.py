@@ -27,8 +27,10 @@ DEBUG = True
 # FRONTEND_DOMAIN = config("FRONTEND_DOMAIN")
 # FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 
-FRONTEND_PROTOCOL="https"
-FRONTEND_DOMAIN="skill-bridge-client.vercel.app"
+# FRONTEND_PROTOCOL="https"
+# FRONTEND_DOMAIN="skill-bridge-client.vercel.app"
+FRONTEND_PROTOCOL="http"
+FRONTEND_DOMAIN="localhost:5173"
 FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
 
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
     'reviews',
     'dashboard',
     'notifications',
+    'notes',
 ]
 
 MIDDLEWARE = [
@@ -135,8 +138,8 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    'https://skill-bridge-client.vercel.app',
     'http://localhost:5173',
+    'https://skill-bridge-client.vercel.app',
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -169,6 +172,7 @@ DJOSER = {
         'user_create': 'users.serializers.UserCreateSerializer',
         'user': 'users.serializers.UserSerializer',
         'current_user': 'users.serializers.UserSerializer',
+        # 'password_reset': 'users.serializers.CustomPasswordResetSerializer',
     },
 }
 

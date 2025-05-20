@@ -8,12 +8,14 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django.contrib.auth import authenticate
-from .serializers import CustomUserSerializer, LoginSerializer
+from .serializers import CustomUserSerializer, LoginSerializer, CustomPasswordResetSerializer
 from orders.serializers import OrderSerializer
 from orders.models import Order
 from reviews.models import Review
 from services.models import Service
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from rest_framework.decorators import api_view
+
 User = get_user_model()
 
 
@@ -119,3 +121,46 @@ class SellerDashboard(APIView):
 
 
 
+
+
+@api_view(['GET'])
+def freelancer_dashboard(request):
+    data = {
+        "task_bids_won": 22,
+        "jobs_applied": 195,
+        "profile_views": [120, 135, 150, 145, 160, 170, 180],
+        "timeline_labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    }
+    return Response(data)
+
+
+# class CustomPasswordResetView(APIView):
+#     permission_classes = [AllowAny]
+#     serializer_class = CustomPasswordResetSerializer
+
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.serializer_class(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+
+#         email = serializer.validated_data['email']
+#         User = serializer.Meta.model if hasattr(serializer.Meta, 'model') else None
+
+#         users = User.objects.filter(email=email) if User else None
+#         if not users or users.count() == 0:
+#             return Response({"email": ["User with this email does not exist."]}, status=status.HTTP_400_BAD_REQUEST)
+
+#         for user in users:
+#             uid = urlsafe_base64_encode(force_bytes(user.pk))
+#             token = default_token_generator.make_token(user)
+#             reset_url = f"http://yourfrontend.com/reset-password-confirm/{uid}/{token}/"
+
+#             # Send reset email
+#             send_mail(
+#                 subject="Password Reset",
+#                 message=f"Click the link to reset your password: {reset_url}",
+#                 from_email="no-reply@yourdomain.com",
+#                 recipient_list=[email],
+#                 fail_silently=False,
+#             )
+
+#         return Response({"detail": "Password reset e-mail has been sent."}, status=status.HTTP_200_OK)

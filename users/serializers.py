@@ -41,3 +41,14 @@ class UserSerializer(BaseUserSerializer):
         model = User
         ref_name = 'UserSerializer'  
         fields = ['id', 'username', 'email',  'first_name', 'last_name', 'role', 'phone_number', 'address']
+
+
+class CustomPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("User with this email does not exist.")
+        return value
