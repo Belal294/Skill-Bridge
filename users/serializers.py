@@ -30,13 +30,14 @@ class UserCreateSerializer(BaseUserCreateSerializer):
         fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'is_staff']
         read_only_fields = ['is_staff']
 
-class UserSerializer(BaseUserSerializer):
-    is_staff = serializers.BooleanField(read_only=True)  
+class UserSerializer(serializers.ModelSerializer):
+    is_staff = serializers.BooleanField(read_only=True)
+    is_superuser = serializers.BooleanField(read_only=True)
 
-    class Meta(BaseUserSerializer.Meta):
+    class Meta:
         model = User
-        ref_name = 'UserSerializer'
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number', 'address', 'is_staff']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number', 'address', 'is_staff', 'is_superuser']
+
 
 class CustomPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
