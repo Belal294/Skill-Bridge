@@ -20,7 +20,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security
 SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
-DEBUG = False
+DEBUG = True
 
 # Frontend Config
 # FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL")
