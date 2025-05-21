@@ -5,7 +5,6 @@ from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer,
 
 User = get_user_model()
 
-
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
 
@@ -21,33 +20,28 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
-
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-
-
 class UserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         model = User
-        fields = ['id', 'username', 'email',  'password', 'first_name', 'last_name', 'role']
-
-
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'is_staff']
+        read_only_fields = ['is_staff']
 
 class UserSerializer(BaseUserSerializer):
+    is_staff = serializers.BooleanField(read_only=True)  
+
     class Meta(BaseUserSerializer.Meta):
         model = User
-        ref_name = 'UserSerializer'  
-        fields = ['id', 'username', 'email',  'first_name', 'last_name', 'role', 'phone_number', 'address']
-
+        ref_name = 'UserSerializer'
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number', 'address', 'is_staff']
 
 class CustomPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, value):
-        from django.contrib.auth import get_user_model
         User = get_user_model()
         if not User.objects.filter(email=value).exists():
             raise serializers.ValidationError("User with this email does not exist.")
