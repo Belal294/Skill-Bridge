@@ -33,10 +33,14 @@ class UserCreateSerializer(BaseUserCreateSerializer):
 class UserSerializer(serializers.ModelSerializer):
     is_staff = serializers.BooleanField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)  
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone_number', 'address', 'is_staff', 'is_superuser']
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'role', 'phone_number', 'address', 'is_staff', 'is_superuser', 'is_active'
+        ]
 
 
 class CustomPasswordResetSerializer(serializers.Serializer):
