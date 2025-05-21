@@ -22,16 +22,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 SECRET_KEY = config("SECRET_KEY", default="your-default-secret-key")
 DEBUG = False
 
-# Frontend Config
-# FRONTEND_PROTOCOL = config("FRONTEND_PROTOCOL")
-# FRONTEND_DOMAIN = config("FRONTEND_DOMAIN")
-# FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 
-FRONTEND_PROTOCOL="https"
+# FRONTEND_PROTOCOL="https"
+# FRONTEND_DOMAIN="skill-bridge-client.vercel.app"
+# # FRONTEND_PROTOCOL="http"
+# # FRONTEND_DOMAIN="localhost:5173"
+# FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
+FRONTEND_URL = "https://skill-bridge-client.vercel.app"
 FRONTEND_DOMAIN="skill-bridge-client.vercel.app"
-# FRONTEND_PROTOCOL="http"
-# FRONTEND_DOMAIN="localhost:5173"
-FRONTEND_URL = f"{FRONTEND_PROTOCOL}://{FRONTEND_DOMAIN}"
 ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
 
 INSTALLED_APPS = [
