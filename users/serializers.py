@@ -27,7 +27,7 @@ class LoginSerializer(serializers.Serializer):
 class UserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'is_staff']
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'is_staff', 'phone_number', 'address' ]
         read_only_fields = ['is_staff']
 
 class UserSerializer(serializers.ModelSerializer):
