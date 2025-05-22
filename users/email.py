@@ -10,7 +10,7 @@ class CustomActivationEmail(ActivationEmail):
             context['url'] = context['url'][1:]
 
         # Proper activation link
-        context["url"] = f"{settings.FRONTEND_URL}/activate/{context['uid']}/{context['token']}"
+        context["url"] = f"/activate/{context['uid']}/{context['token']}"
         
         print("Activation link being sent:", context["url"])  
         return context
