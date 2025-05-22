@@ -7,11 +7,12 @@ User = get_user_model()
 
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    is_active = serializers.BooleanField(read_only=True)  
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number', 'address', 'role', 'password']
-        ref_name = 'CustomUserSerializer'
+        fields = ['id', 'first_name', 'last_name', 'email', 'phone_number', 'address', 'role', 'password', 'is_active']
+
 
     def create(self, validated_data):
         password = validated_data.pop('password')
